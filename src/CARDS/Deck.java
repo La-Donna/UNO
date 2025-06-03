@@ -3,13 +3,16 @@ package CARDS;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Stack;
 
 public class Deck {
     //Use a List<Card> for the deck
-    private List<Card> cards;
+    private Stack<Card> cards;
 
+/// find out more about stacks and make sure the card-stacks are available + draw and discard
     public Deck() {
-        this.cards = new ArrayList<>();
+       // this.cards = new ArrayList<>();
+        this.cards = new Stack<>();
         initializeDeck();
         shuffle();
     }
@@ -55,6 +58,8 @@ public class Deck {
         }
         return cards.remove(0);
     }
+/// if (isEmpty() ) --> reshuffle discard pile!!
+/// add Draw-Pile and Discard-Pile temp
 
     //isEmpty(): check if the deck is empty
     public boolean isEmpty(){
@@ -76,5 +81,8 @@ public class Deck {
             System.out.println(card);
         }
     }
+
+/// implement separate class for Hand which will be given to the players
+/// idea: referee class to moderate and count points of hands???
 
 }
