@@ -1,3 +1,8 @@
+package PLAYERS;
+
+import CARDS.Card;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class Player {

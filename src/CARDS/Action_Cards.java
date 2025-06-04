@@ -1,5 +1,7 @@
 package CARDS;
 
+import PLAYERS.Player;
+
 import java.util.Scanner;
 
 public class Action_Cards extends Card{
@@ -8,26 +10,26 @@ public class Action_Cards extends Card{
     }
     /**
      * Executes the special function of this action card
-     * @param game The current game instance
+     * @param run The current game instance
      * @param scanner Scanner for user input (needed for color choice)
      * @return The new color if this is a wild card, null otherwise
      */
-    public Color executeSpecialFunction(Game game, Scanner scanner) {
+    public Color executeSpecialFunction(Run run, Scanner scanner) {
         switch (this.getType()) {
             case SKIP:
-                return executeSkip(game);
+                return executeSkip(run);
 
             case REVERSE:
-                return executeReverse(game);
+                return executeReverse(run);
 
             case DRAW_TWO:
-                return executeDrawTwo(game);
+                return executeDrawTwo(run);
 
             case WILD:
                 return executeWild(scanner);
 
             case WILD_DRAW_FOUR:
-                return executeWildDrawFour(game, scanner);
+                return executeWildDrawFour(run, scanner);
 
             default:
                 return null; // NUMBER cards have no special function
@@ -37,33 +39,33 @@ public class Action_Cards extends Card{
     /**
      * SKIP card: Next player is skipped
      */
-    private Color executeSkip(Game game) {
+    private Color executeSkip(Run run) {
         System.out.println("SKIP card played! Next player is skipped.");
         // Skip the next player by calling nextPlayer() twice
-        game.nextPlayer();
+        run.nextPlayer();
         return null;
     }
 
     /**
      * REVERSE card: Changes direction of play
      */
-    private Color executeReverse(Game game) {
+    private Color executeReverse(Run run) {
         System.out.println("REVERSE card played! Direction of play changed.");
-        game.reverseDirection();
+        run.reverseDirection();
         return null;
     }
 
     /**
      * DRAW TWO card: Next player draws 2 cards and loses their turn
      */
-    private Color executeDrawTwo(Game game) {
+    private Color executeDrawTwo(Run run) {
         System.out.println("DRAW TWO card played! Next player draws 2 cards and loses their turn.");
-        game.nextPlayer();
-        Player nextPlayer = game.getCurrentPlayer();
+        run.nextPlayer();
+        Player nextPlayer = run.getCurrentPlayer();
 
         // Draw 2 cards
         for (int i = 0; i < 2; i++) {
-            Card drawnCard = game.getDeck().drawCard();
+            Card drawnCard = run.getDeck().drawCard();
             if (drawnCard != null) {
                 nextPlayer.drawCard(drawnCard);
             }
@@ -85,16 +87,16 @@ public class Action_Cards extends Card{
      * WILD DRAW FOUR card: Player chooses color, next player draws 4 cards
      * Note: In real UNO, this can only be played if player has no matching color
      */
-    private Color executeWildDrawFour(Game game, Scanner scanner) {
+    private Color executeWildDrawFour (Run run, Scanner scanner) {
         System.out.println("WILD DRAW FOUR card played!");
 
         // Next player draws 4 cards and loses turn
-        game.nextPlayer();
-        Player nextPlayer = game.getCurrentPlayer();
+        run.nextPlayer();
+        Player nextPlayer = run.getCurrentPlayer();
 
         // Draw 4 cards
         for (int i = 0; i < 4; i++) {
-            Card drawnCard = game.getDeck().drawCard();
+            Card drawnCard = run.getDeck().drawCard();
             if (drawnCard != null) {
                 nextPlayer.drawCard(drawnCard);
             }
