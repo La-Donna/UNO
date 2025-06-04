@@ -16,6 +16,4 @@ public class UnoGame {
         // - Accept input to play or draw
         // - Handle special cards (skip, reverse, draw two, etc.)
     }
-
-
 }
