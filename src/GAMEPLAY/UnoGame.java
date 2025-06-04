@@ -1,3 +1,9 @@
+package GAMEPLAY;
+
+import CARDS.Card;
+import CARDS.Deck;
+import PLAYERS.Player;
+
 import java.util.List;
 
 public class UnoGame {
