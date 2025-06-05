@@ -1,112 +1,111 @@
 package CARDS;
 
-import PLAYERS.Player;
-
 import java.util.Scanner;
 
-public class Action_Cards extends Card{
+/**
+ * Represents action cards (non-number cards) in UNO
+ * Handles special functions for SKIP, REVERSE, DRAW_TWO, WILD, and WILD_DRAW_FOUR cards
+ */
+public class Action_Cards extends Card {
+
     public Action_Cards(Color color, Type type) {
         super(color, type);
+        // Ensure this is actually an action card
+        if (type == Type.NUMBER) {
+            throw new IllegalArgumentException("Action_Cards cannot be of type NUMBER");
+        }
     }
+
     /**
      * Executes the special function of this action card
-     * @param run The current game instance
-     * @param scanner Scanner for user input (needed for color choice)
-     * @return The new color if this is a wild card, null otherwise
+     * @param playerCount Number of players in the game (needed for REVERSE logic)
+     * @param scanner Scanner for user input (needed for wild card color choice)
+     * @return ActionResult containing the effects of playing this card
      */
-    public Color executeSpecialFunction(Run run, Scanner scanner) {
+    public ActionResult executeSpecialFunction(int playerCount, Scanner scanner) {
         switch (this.getType()) {
             case SKIP:
-                return executeSkip(run);
+                return executeSkip();
 
             case REVERSE:
-                return executeReverse(run);
+                return executeReverse(playerCount);
 
             case DRAW_TWO:
-                return executeDrawTwo(run);
+                return executeDrawTwo();
 
             case WILD:
                 return executeWild(scanner);
 
             case WILD_DRAW_FOUR:
-                return executeWildDrawFour(run, scanner);
+                return executeWildDrawFour(scanner);
 
             default:
-                return null; // NUMBER cards have no special function
+                return new ActionResult(); // No special effects
         }
     }
 
     /**
      * SKIP card: Next player is skipped
      */
-    private Color executeSkip(Run run) {
+    private ActionResult executeSkip() {
         System.out.println("SKIP card played! Next player is skipped.");
-        // Skip the next player by calling nextPlayer() twice
-        run.nextPlayer();
-        return null;
+        ActionResult result = new ActionResult();
+        result.skipNextPlayer = true;
+        return result;
     }
 
     /**
      * REVERSE card: Changes direction of play
      */
-    private Color executeReverse(Run run) {
+    private ActionResult executeReverse(int playerCount) {
         System.out.println("REVERSE card played! Direction of play changed.");
-        run.reverseDirection();
-        return null;
+        ActionResult result = new ActionResult();
+        result.reverseDirection = true;
+
+        // Special case: In a 2-player game, REVERSE acts like SKIP
+        if (playerCount == 2) {
+            System.out.println("In 2-player game, REVERSE acts as SKIP!");
+            result.skipNextPlayer = true;
+        }
+
+        return result;
     }
 
     /**
      * DRAW TWO card: Next player draws 2 cards and loses their turn
      */
-    private Color executeDrawTwo(Run run) {
+    private ActionResult executeDrawTwo() {
         System.out.println("DRAW TWO card played! Next player draws 2 cards and loses their turn.");
-        run.nextPlayer();
-        Player nextPlayer = run.getCurrentPlayer();
-
-        // Draw 2 cards
-        for (int i = 0; i < 2; i++) {
-            Card drawnCard = run.getDeck().drawCard();
-            if (drawnCard != null) {
-                nextPlayer.drawCard(drawnCard);
-            }
-        }
-
-        System.out.println(nextPlayer.getName() + " drew 2 cards and loses their turn.");
-        return null;
+        ActionResult result = new ActionResult();
+        result.cardsToDrawByNextPlayer = 2;
+        result.skipNextPlayer = true;
+        return result;
     }
 
     /**
      * WILD card: Player chooses the next color
      */
-    private Color executeWild(Scanner scanner) {
+    private ActionResult executeWild(Scanner scanner) {
         System.out.println("WILD card played! Choose the next color:");
-        return chooseColor(scanner);
+        ActionResult result = new ActionResult();
+        result.newColor = chooseColor(scanner);
+        return result;
     }
 
     /**
      * WILD DRAW FOUR card: Player chooses color, next player draws 4 cards
-     * Note: In real UNO, this can only be played if player has no matching color
      */
-    private Color executeWildDrawFour (Run run, Scanner scanner) {
+    private ActionResult executeWildDrawFour(Scanner scanner) {
         System.out.println("WILD DRAW FOUR card played!");
+        ActionResult result = new ActionResult();
+        result.cardsToDrawByNextPlayer = 4;
+        result.skipNextPlayer = true;
 
-        // Next player draws 4 cards and loses turn
-        run.nextPlayer();
-        Player nextPlayer = run.getCurrentPlayer();
-
-        // Draw 4 cards
-        for (int i = 0; i < 4; i++) {
-            Card drawnCard = run.getDeck().drawCard();
-            if (drawnCard != null) {
-                nextPlayer.drawCard(drawnCard);
-            }
-        }
-
-        System.out.println(nextPlayer.getName() + " drew 4 cards and loses their turn.");
-
-        // Player who played the card chooses the color
+        // The Player who played the card chooses the color
         System.out.println("Choose the next color:");
-        return chooseColor(scanner);
+        result.newColor = chooseColor(scanner);
+
+        return result;
     }
 
     /**
@@ -146,46 +145,24 @@ public class Action_Cards extends Card{
     }
 
     /**
-     * Gets the point value of this card for scoring
+     * Simple class to hold the results of playing an action card
      */
-    public int getPoints() {
-        switch (this.getType()) {
-            case SKIP:
-            case REVERSE:
-            case DRAW_TWO:
-                return 20;
+    public static class ActionResult {
+        public boolean skipNextPlayer = false;
+        public boolean reverseDirection = false;
+        public int cardsToDrawByNextPlayer = 0;
+        public Color newColor = null;
+//Constructor
+        public ActionResult() {}
 
-            case WILD:
-            case WILD_DRAW_FOUR:
-                return 50;
-
-            default:
-                return 0; // NUMBER cards handled in base Card class
+        @Override
+        public String toString() {
+            return "ActionResult{" +
+                    "skipNextPlayer=" + skipNextPlayer +
+                    ", reverseDirection=" + reverseDirection +
+                    ", cardsToDrawByNextPlayer=" + cardsToDrawByNextPlayer +
+                    ", newColor=" + newColor +
+                    '}';
         }
-    }
-
-    /**
-     * Checks if this card can be played on the given top card
-     * @param topCard The current top card on the discard pile
-     * @param currentColor The current active color (important for wild cards)
-     * @return true if this card can be played
-     */
-    public boolean canPlayOn(Card topCard, Color currentColor) {
-        // Wild cards can always be played
-        if (this.getType() == Type.WILD || this.getType() == Type.WILD_DRAW_FOUR) {
-            return true;
-        }
-
-        // Same color
-        if (this.getColor() == currentColor || this.getColor() == topCard.getColor()) {
-            return true;
-        }
-
-        // Same type (e.g., SKIP on SKIP)
-        if (this.getType() == topCard.getType()) {
-            return true;
-        }
-
-        return false;
     }
 }
