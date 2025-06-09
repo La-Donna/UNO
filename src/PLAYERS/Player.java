@@ -83,7 +83,7 @@ public class Player {
      */
     public void endRound() {
         this.gamePoints += this.roundPoints;
-        this.gamePoints += this.penaltyPoints; // Penalties are added to game points at round end
+        this.gamePoints += this.penaltyPoints; // Penalties are added to game points at the end of a round
         this.roundPoints = 0; // Reset for next round
         this.penaltyPoints = 0; // Reset penalties for next round
     }

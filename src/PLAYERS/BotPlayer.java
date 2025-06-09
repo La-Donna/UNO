@@ -3,7 +3,7 @@ import CARDS.Card; // Make sure this import is there
 import java.util.List;
 
 /**
- * The BotPlayer class represents an AI-controlled player in the UNO game.
+ * The BotPlayer class represents an automated player in the UNO game.
  * It extends the Player class and implements its own logic for choosing cards.
  */
 public class BotPlayer extends Player {

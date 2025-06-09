@@ -11,15 +11,13 @@ import VARIATIONS.RunVariations;
 import UI.Menu;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Random;
 
 /**
- * The central class to run the UNO game.
- * It orchestrates the entire game lifecycle: setup, managing player turns,
- * applying card effects, handling round and game endings, and interacting
+ * The Run class orchestrates the entire game lifecycle:
+ * setup, managing player turns, applying card effects, handling round and game endings, and interacting
  * with other game components like the Deck, Players, Referee, and Menu.
  */
 public class Run {
@@ -30,7 +28,7 @@ public class Run {
     private boolean isClockwise;             // True for clockwise play direction, false for counter-clockwise
     private Scanner scanner;                 // Scanner for user input (passed to Menu)
     private Menu menu;                       // UI component for displaying menus and getting input
-    private Referee referee;                 // Rule enforcer for validating plays and applying penalties
+    private Referee referee;                 // Rule enforcer for validating plays and applying penalties 💥
     private RunVariations gameVariants;      // Manages active game rule variations
     private final int MAX_PLAYERS = 4;       // Fixed maximum number of players for the game
 
@@ -39,17 +37,17 @@ public class Run {
      * Initializes core game components that persist throughout the game's execution.
      */
     public Run() {
-        scanner = new Scanner(System.in); // Initialize scanner once
-        menu = new Menu(scanner);         // Menu instance for all UI interactions
-        players = new ArrayList<>();      // List to hold all player objects
-        gameDeck = new Deck();            // The game's deck of UNO cards
-        referee = new Referee();          // The referee for rule enforcement
+        scanner = new Scanner(System.in);   // Initialize scanner once
+        menu = new Menu(scanner);           // Menu instance for all UI interactions
+        players = new ArrayList<>();        // List to hold all player objects
+        gameDeck = new Deck();              // The game's deck of UNO cards
+        referee = new Referee();            // The referee for rule enforcement
         gameVariants = new RunVariations(); // Manages optional game rules
-        isClockwise = true;               // Game always starts in clockwise direction
+        isClockwise = true;                 // Game always starts in clockwise direction
     }
 
     /**
-     * Orchestrates the initial setup phase of the game.
+     * Orchestrates the initial setup phase.
      * This includes:
      * 1. Getting player information (human vs. bot, names).
      * 2. Allowing the selection of optional game variants.
@@ -58,9 +56,23 @@ public class Run {
      * 5. Determining the starting player.
      */
     public void setupGame() {
-        System.out.println("--- Game Setup ---");
+        System.out.println("---- Game Setup ----");
 
-        // 1. Get human player names and automatically create bots to reach MAX_PLAYERS
+        boolean playClassicUno = menu.getYesNoInput("Do you want to play classic UNO (no variations)? (y/n)");
+
+        if (playClassicUno) {
+            // If classic, disable all variations
+            gameVariants.setAllowStackingDrawCards(false);
+            gameVariants.setJumpInRuleActive(false);
+            // Set winning score to default if you have a setter, or just state it's the default
+            gameVariants.setWinningScore(500); // Assuming 500 is your classic default
+            System.out.println("Playing Classic UNO. All variations disabled.");
+        } else {
+            // If not classic, then proceed to ask about variations
+            gameVariants.selectGameVariants(menu);
+        }
+
+        // 1. Get human player names & automatically create bots to reach MAX_PLAYERS
         getPlayersInput();
 
         // 2. Allow player to select game variants
@@ -122,7 +134,7 @@ public class Run {
 
     /**
      * Draws the first card for the discard pile.
-     * Special handling for action cards (Skip, Reverse, Draw Two) and Wild Draw Four
+     * Special handling for action cards (Skip, Reverse, Draw Two, Wild, & Wild Draw Four)
      * if they are the very first card:
      * - WILD_DRAW_FOUR: Reshuffled back into the deck, new card drawn.
      * - REVERSE: Direction of play is immediately reversed.
@@ -138,7 +150,7 @@ public class Run {
             firstCard = gameDeck.drawCard();
             // If the first card drawn is a WILD_DRAW_FOUR, it must be reshuffled.
             if (firstCard.getType() == Card.Type.WILD_DRAW_FOUR) {
-                System.out.println("Initial card was a WILD DRAW FOUR. Reshuffling and drawing again...");
+                System.out.println("Initial card was a 🃏WILD DRAW FOUR. Reshuffling and drawing again...");
                 gameDeck.discardCard(firstCard); // Put it back to be reshuffled
                 gameDeck.shuffleDrawPile();      // Reshuffle the draw pile
             } else if (firstCard.getType() == Card.Type.WILD) {
@@ -204,7 +216,7 @@ public class Run {
     }
 
     /**
-     * The main game loop.
+     * Main game loop.
      * This loop continues until a game-winning condition is met (e.g., a player reaches 500 points).
      * Each iteration manages a player's turn, checks for round/game endings, and resets for new rounds.
      */
@@ -216,7 +228,7 @@ public class Run {
             // Display current game state before player's turn
             displayGameState(currentPlayer);
 
-            // Check if game win condition (e.g., score limit) is already met
+            // Check if game winning condition (e.g., score limit) is already met
             if (referee.checkGameWinCondition(players, gameVariants)) {
                 gameOver = true; // Game ends
                 break;
@@ -227,8 +239,8 @@ public class Run {
 
             // After a player's turn, check if they won the current round (empty hand)
             if (currentPlayer.getHand().isEmpty()) {
-                System.out.println("\n--- Round End ---");
-                System.out.println(currentPlayer.getName() + " wins the round by playing their last card!");
+                System.out.println("\n--- End of Round ---");
+                System.out.println(currentPlayer.getName() + " 🏆 wins the round by playing his/her last card!");
 
                 // Calculate points for the round based on cards in opponents' hands
                 referee.calculateRoundPoints(players, currentPlayer);
@@ -242,12 +254,12 @@ public class Run {
                 // Check if the game has ended based on accumulated scores
                 if (referee.checkGameWinCondition(players, gameVariants)) {
                     gameOver = true; // Game ends
-                    System.out.println("\n--- Game Over! ---");
+                    System.out.println("\n--- 🔊Game Over! ---");
                     displayGameEndScores(); // Show final scores
                     break;
                 } else {
                     // If game not over, reset for a new round
-                    System.out.println("\n--- Starting Next Round ---");
+                    System.out.println("\n--- Starting Next Round 🔔---");
                     gameDeck.reset(); // Re-initialize and shuffle the deck
                     for (Player p : players) {
                         p.getHand().clear(); // Clear all players' hands
@@ -258,20 +270,21 @@ public class Run {
                     menu.pressEnterToContinue(); // Pause before next round begins
                 }
             }
-            // Advance to the next player only if the game is not yet over (neither round nor game ended)
+            // Move / advance to the next player only if the game is not yet over (neither round nor game ended)
             if (!gameOver) {
-                advanceToNextPlayer();
+                moveToNextPlayer();
             }
         }
-        System.out.println("\nThanks for playing UNO!");
+        System.out.println("\nThanks for playing UNO! \n🪻🌼🌹🌻🌸");
         scanner.close(); // Close the scanner when the game terminates
     }
 
     /**
-     * Manages a single player's turn. This includes:
+     * Manages a single player's turn.
+     * This includes:
      * - For human players: displaying their hand, prompting for card choice or drawing,
      * handling invalid plays, and menu options.
-     * - For bot players: executing their AI logic to choose a card or draw.
+     * - For bot players: executing their automated logic to choose a card or draw.
      * - Applying effects of played action cards.
      * - Checking for "UNO" call conditions.
      *
@@ -284,9 +297,9 @@ public class Run {
                 // --- Bot Player's Turn Logic ---
                 BotPlayer bot = (BotPlayer) currentPlayer;
                 System.out.println(bot.getName() + "'s turn. " + bot.getName() + " is thinking...");
-                // Simulate bot thinking time for better user experience
+                // Simulate bot thinking time for better user experience 😜
                 try {
-                    Thread.sleep(1500); // Pause for 1.5 seconds
+                    Thread.sleep(3000); // Pause for 3 seconds
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt(); // Restore interrupted status
                 }
@@ -308,8 +321,8 @@ public class Run {
                         }
                         turnEnded = true; // Bot successfully played a card, turn ends
                     } else {
-                        // This case should ideally not happen with a well-designed bot AI.
-                        // If it does, the bot is forced to draw.
+                        // This case should ideally not happen with a well-designed bot -
+                        // anyway if it does, the bot is forced to draw:
                         System.out.println(bot.getName() + " attempted an invalid play and draws one card.");
                         Card drawnCard = gameDeck.drawCard();
                         bot.drawCard(drawnCard);
@@ -338,10 +351,10 @@ public class Run {
                     turnEnded = true; // Bot's turn ends after drawing/potentially playing drawn card
                 }
             } else {
-                // --- Human Player's Turn Logic ---
-                int choice = menu.getCardChoice(currentPlayer.getHand()); // Diese Methode zeigt die Hand bereits an!
+                // --- Human Player's Turn Logic 👧🏻🧑🏼‍🦱👩🏾‍🦰---
+                int actionChoice = menu.getPlayerActionChoice(currentPlayer.getHand(), currentPlayer.getName());
 
-                if (choice == 0) {
+                if (actionChoice == 0) {
                     // Player chose to draw a card
                     Card drawnCard = gameDeck.drawCard();
                     currentPlayer.drawCard(drawnCard);
@@ -363,9 +376,9 @@ public class Run {
                         System.out.println(currentPlayer.getName() + " cannot play the drawn card.");
                         turnEnded = true; // Turn ends if drawn card is not playable
                     }
-                } else if (choice > 0) {
+                } else if (actionChoice > 0) {
                     // Player chose to play a card from their hand
-                    Card chosenCard = currentPlayer.getHand().get(choice - 1); // Get the actual Card object
+                    Card chosenCard = currentPlayer.getHand().get(actionChoice - 1); // Get the actual Card object
 
                     // Validate if the chosen card can be played
                     if (referee.isValidPlay(currentPlayer, chosenCard, gameDeck.peekTopDiscard(), currentActiveColor, gameVariants)) {
@@ -376,11 +389,12 @@ public class Run {
 
                         // Check for UNO call if player has 1 card left
                         if (currentPlayer.hasUNO()) {
-                            if (!menu.getYesNoInput("You have UNO! Do you want to call UNO? (y/n): ")) {
+                            if (!menu.getYesNoInput("You have UNO! 🎊 Do you want to call UNO? (y/n): ")) {
                                 // Penalty for forgetting UNO (Run class handles drawing based on Referee call)
                                 referee.applyPenalty(currentPlayer, 2);
-                                for(int i=0; i<2; i++) currentPlayer.drawCard(gameDeck.drawCard()); // Actually draw penalty cards
-                                System.out.println("Penalty! " + currentPlayer.getName() + " draws 2 cards for not calling UNO!");
+                                for (int i = 0; i < 2; i++)
+                                    currentPlayer.drawCard(gameDeck.drawCard()); // Actually draw penalty cards
+                                System.out.println("Penalty! 🥊 " + currentPlayer.getName() + " draws 2 cards for not calling UNO!");
                             } else {
                                 System.out.println(currentPlayer.getName() + " calls UNO!");
                             }
@@ -391,152 +405,175 @@ public class Run {
                         System.out.println("Please choose another card or '0' to draw.");
                         // Turn does NOT end, player is prompted to choose again.
                     }
+                }
+                // --- Handle special actions like "Call UNO" or "Help" --
+                else if (actionChoice == -2) { // Special code for "Call UNO!"
+                    if (currentPlayer.hasUNO()) {
+                        System.out.println(currentPlayer.getName() + " proudly calls UNO!");
+                        // You might want to set a flag here to prevent penalty for this turn
+                    } else {
+                        System.out.println("You don't have UNO! No need to call it.");
+                        referee.applyPenalty(currentPlayer, 2); // Penalty for false UNO call
+                        for (int i = 0; i < 2; i++) currentPlayer.drawCard(gameDeck.drawCard());
+                        System.out.println("Penalty! " + currentPlayer.getName() + " draws 2 cards for calling UNO incorrectly!");
+                    }
+                    // Turn does NOT end, player still needs to make a valid action
+                } else if (actionChoice == -3) { // Special code for "Help"
+                    menu.displayMessage("\n--- UNO Help ---");
+                    menu.displayMessage("Enter the number of the card you want to play.");
+                    menu.displayMessage("Enter '0' to draw a card.");
+                    menu.displayMessage("Enter 'S' to call UNO (if you have one card left).");
+                    menu.displayMessage("Enter 'H' to see this help message again.");
+                    menu.displayMessage("-----------------");
+                    menu.pressEnterToContinue();
+                    // Turn does NOT end, player still needs to make a valid action
                 } else {
-                    // Invalid input for card choice (getCardChoice returned -1, implying an issue)
-                    System.out.println("Please enter a valid card number or '0' to draw.");
+                    // Invalid input for card choice (getPlayerActionChoice returned -1, implying an issue)
+                    System.out.println("Please enter a valid card number, 'S' for UNO, or 'H' for Help.");
                     // Turn does NOT end, player is prompted to choose again.
+                }
+                // Pause before the next player's turn starts
+                menu.pressEnterToContinue();
+            }
+        }
+    }
+
+        /**
+         * Applies the specific effects of a played card.
+         * This method delegates to the `Action_Cards` class for effect definition,
+         * and then `handleActionCardEffect` interprets and applies them to the game state.
+         *
+         * @param playedCard The `Card` object that was just played.
+         */
+        private void applyCardEffects (Card playedCard){
+            // Only apply effects if it's an action card
+            if (playedCard instanceof Action_Cards) {
+                Action_Cards actionCard = (Action_Cards) playedCard;
+                // Execute the action card's special function.
+                // It returns an ActionResult object describing what should happen.
+                // No Scanner is passed here, as Action_Cards doesn't handle input directly!
+                Action_Cards.ActionResult result = actionCard.executeSpecialFunction(players.size());
+                handleActionCardEffect(result); // Apply the effects to the game state
+            }
+            // For non-action cards, the current active color is simply the color of the played card.
+            // This is handled AFTER card effects in the main game loop, or if no action card.
+            currentActiveColor = playedCard.getColor(); // Update the active color to the color of the played card
+        }
+
+        /**
+         * Interprets and applies the results of an `Action_Cards.ActionResult` to the game state.
+         * This method modifies `isClockwise`, advances/moves `currentPlayerIndex` for skips,
+         * forces players to draw cards, and prompts for color choice if necessary.
+         *
+         * @param result The `ActionResult` object returned by an `Action_Cards` method.
+         */
+        private void handleActionCardEffect (Action_Cards.ActionResult result){
+            if (result.reverseDirection) {
+                isClockwise = !isClockwise; // Toggle play direction
+                System.out.println("Play direction reversed! 🔃");
+            }
+            if (result.skipNextPlayer) {
+                System.out.println("Next player's turn is skipped! ❌");
+                moveToNextPlayer(); // Advance `currentPlayerIndex` to effectively skip the next player
+            }
+            if (result.cardsToDrawByNextPlayer > 0) {
+                Player playerToDraw = getNextPlayer(); // Get the player who must draw cards
+                System.out.println(playerToDraw.getName() + " must draw " + result.cardsToDrawByNextPlayer + " cards!");
+                for (int i = 0; i < result.cardsToDrawByNextPlayer; i++) {
+                    playerToDraw.drawCard(gameDeck.drawCard()); // Player draws cards from the deck
+                }
+            }
+            if (result.needsColorChoice) {
+                // The current player (who played the Wild card) gets to choose the new color
+                currentActiveColor = menu.promptForColorChoice(); // Prompt user via menu
+                System.out.println("Current active color set to: " + currentActiveColor);
+            }
+        }
+
+        /**
+         * Advances the `currentPlayerIndex` to the next player based on the current
+         * direction of play (`isClockwise`). Handles wrapping around the player list.
+         */
+        private void moveToNextPlayer () {
+            if (isClockwise) {
+                currentPlayerIndex = (currentPlayerIndex + 1) % players.size(); // Move clockwise
+            } else {
+                currentPlayerIndex = (currentPlayerIndex - 1 + players.size()) % players.size();
+                // The modulo operator in Java can return negative results for negative inputs.
+                // Adding players.size() ensures a positive result before modulo.
+                if (currentPlayerIndex < 0) {
+                    currentPlayerIndex += players.size();
                 }
             }
         }
-        // Pause before the next player's turn starts
-        menu.pressEnterToContinue();
-    }
 
-    /**
-     * Applies the specific effects of a played card.
-     * This method delegates to the `Action_Cards` class for effect definition,
-     * and then `handleActionCardEffect` interprets and applies them to the game state.
-     *
-     * @param playedCard The `Card` object that was just played.
-     */
-    private void applyCardEffects(Card playedCard) {
-        // Only apply effects if it's an action card
-        if (playedCard instanceof Action_Cards) {
-            Action_Cards actionCard = (Action_Cards) playedCard;
-            // Execute the action card's special function.
-            // It returns an ActionResult object describing what should happen.
-            // No Scanner is passed here, as Action_Cards doesn't handle input directly.
-            Action_Cards.ActionResult result = actionCard.executeSpecialFunction(players.size());
-            handleActionCardEffect(result); // Apply the effects to the game state
-        }
-        // For non-action cards, the current active color is simply the color of the played card.
-        // This is handled AFTER card effects in the main game loop, or if no action card.
-        currentActiveColor = playedCard.getColor(); // Update the active color to the color of the played card
-    }
-
-    /**
-     * Interprets and applies the results of an `Action_Cards.ActionResult` to the game state.
-     * This method modifies `isClockwise`, advances `currentPlayerIndex` for skips,
-     * forces players to draw cards, and prompts for color choice if necessary.
-     *
-     * @param result The `ActionResult` object returned by an `Action_Cards` method.
-     */
-    private void handleActionCardEffect(Action_Cards.ActionResult result) {
-        if (result.reverseDirection) {
-            isClockwise = !isClockwise; // Toggle play direction
-            System.out.println("Play direction reversed!");
-        }
-        if (result.skipNextPlayer) {
-            System.out.println("Next player's turn is skipped!");
-            advanceToNextPlayer(); // Advance `currentPlayerIndex` to effectively skip the next player
-        }
-        if (result.cardsToDrawByNextPlayer > 0) {
-            Player playerToDraw = getNextPlayer(); // Get the player who must draw cards
-            System.out.println(playerToDraw.getName() + " must draw " + result.cardsToDrawByNextPlayer + " cards!");
-            for (int i = 0; i < result.cardsToDrawByNextPlayer; i++) {
-                playerToDraw.drawCard(gameDeck.drawCard()); // Player draws cards from the deck
+        /**
+         * Returns the `Player` object that would be next in turn, without actually
+         * changing the `currentPlayerIndex`.
+         * Useful for applying effects to the "next" player
+         * before their turn officially begins (e.g., Draw Two/Four effects).
+         *
+         * @return The `Player` object who is next in line.
+         */
+        public Player getNextPlayer () {
+            int nextIndex;
+            if (isClockwise) {
+                nextIndex = (currentPlayerIndex + 1) % players.size();
+            } else {
+                nextIndex = (currentPlayerIndex - 1 + players.size()) % players.size();
+                if (nextIndex < 0) { // Ensure positive index when wrapping around from 0 to last player
+                    nextIndex = players.size() - 1;
+                }
             }
+            return players.get(nextIndex);
         }
-        if (result.needsColorChoice) {
-            // The current player (who played the Wild card) gets to choose the new color
-            currentActiveColor = menu.promptForColorChoice(); // Prompt user via menu
-            System.out.println("Current active color set to: " + currentActiveColor);
-        }
-    }
 
-    /**
-     * Advances the `currentPlayerIndex` to the next player based on the current
-     * direction of play (`isClockwise`). Handles wrapping around the player list.
-     */
-    private void advanceToNextPlayer() {
-        if (isClockwise) {
-            currentPlayerIndex = (currentPlayerIndex + 1) % players.size(); // Move clockwise
-        } else {
-            currentPlayerIndex = (currentPlayerIndex - 1 + players.size()) % players.size();
-            // The modulo operator in Java can return negative results for negative inputs.
-            // Adding players.size() ensures a positive result before modulo.
-            if (currentPlayerIndex < 0) {
-                currentPlayerIndex += players.size();
+        /**
+         * Displays the current state of the game to the console.
+         * This includes:
+         * - Whose turn it is
+         * - The top card on the discard pile and the current active color
+         * - The current direction of play
+         * - The number of cards in each player's hand
+         *
+         * @param currentPlayer The `Player` object whose turn it currently is.
+         */
+        private void displayGameState (Player currentPlayer){
+            System.out.println("\n------------------------------------");
+            System.out.println("Current Turn: " + currentPlayer.getName());
+            System.out.println("Top Card on Discard Pile: " + gameDeck.peekTopDiscard());
+            System.out.println("Current Active Color: " + currentActiveColor);
+            System.out.println("Play Direction: " + (isClockwise ? "Clockwise ->" : "<- Counter-Clockwise"));
+            System.out.println("--- Player Hands ---");
+            for (Player p : players) {
+                System.out.println("- " + p.getName() + ": " + p.getHand().size() + " cards");
             }
+            System.out.println("------------------------------------");
         }
-    }
 
-    /**
-     * Returns the `Player` object that would be next in turn, without actually
-     * changing the `currentPlayerIndex`. Useful for applying effects to the "next" player
-     * before their turn officially begins (e.g., Draw Two/Four effects).
-     *
-     * @return The `Player` object who is next in line.
-     */
-    public Player getNextPlayer() {
-        int nextIndex;
-        if (isClockwise) {
-            nextIndex = (currentPlayerIndex + 1) % players.size();
-        } else {
-            nextIndex = (currentPlayerIndex - 1 + players.size()) % players.size();
-            if (nextIndex < 0) { // Ensure positive index when wrapping around from 0 to last player
-                nextIndex = players.size() - 1;
+        /**
+         * Displays the final scores for all players at the end of the entire game.
+         * This is called once the overall game win condition is met.
+         */
+        private void displayGameEndScores () {
+            System.out.println("\n--- Final Game Scores 📋---");
+            // Sort players by score if needed, or just display current totals
+            // For simplicity, just display as they are in the list
+            for (Player p : players) {
+                p.showScore(); // Displays name, total game points
             }
+            System.out.println("-------------------------");
         }
-        return players.get(nextIndex);
-    }
 
-    /**
-     * Displays the current state of the game to the console.
-     * This includes:
-     * - Whose turn it is.
-     * - The top card on the discard pile and the current active color.
-     * - The current direction of play.
-     * - The number of cards in each player's hand.
-     *
-     * @param currentPlayer The `Player` object whose turn it currently is.
-     */
-    private void displayGameState(Player currentPlayer) {
-        System.out.println("\n------------------------------------");
-        System.out.println("Current Turn: " + currentPlayer.getName());
-        System.out.println("Top Card on Discard Pile: " + gameDeck.peekTopDiscard());
-        System.out.println("Current Active Color: " + currentActiveColor);
-        System.out.println("Play Direction: " + (isClockwise ? "Clockwise ->" : "<- Counter-Clockwise"));
-        System.out.println("--- Player Hands ---");
-        for (Player p : players) {
-            System.out.println("- " + p.getName() + ": " + p.getHand().size() + " cards");
+        /**
+         * Ends the current game. This can be called if a player quits or if the game
+         * concludes. It resets game-specific data for a clean restart.
+         */
+        public void endGame () {
+            System.out.println("Game aborted. 🫨 Resetting scores...");
+            for (Player p : players) {
+                p.endGame(); // Reset total game points and penalties for each player
+            }
+            // Additional cleanup like resetting the deck might be done here if a new game isn't automatically starting
         }
-        System.out.println("------------------------------------");
     }
-
-    /**
-     * Displays the final scores for all players at the end of the entire game.
-     * This is called once the overall game win condition is met.
-     */
-    private void displayGameEndScores() {
-        System.out.println("\n--- Final Game Scores ---");
-        // Sort players by score if needed, or just display current totals
-        // For simplicity, just display as they are in the list
-        for (Player p : players) {
-            p.showScore(); // Displays name, total game points
-        }
-        System.out.println("-------------------------");
-    }
-
-    /**
-     * Ends the current game. This can be called if a player quits or if the game
-     * concludes. It resets game-specific data for a clean restart.
-     */
-    public void endGame() {
-        System.out.println("Game aborted. Resetting scores...");
-        for (Player p : players) {
-            p.endGame(); // Reset total game points and penalties for each player
-        }
-        // Additional cleanup like resetting the deck might be done here if a new game isn't automatically starting
-    }
-}

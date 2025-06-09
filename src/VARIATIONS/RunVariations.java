@@ -30,11 +30,11 @@ public class RunVariations {
         System.out.println("\n--- Select Game Rule Variations ---");
 
         // Option for stacking Draw Two/Draw Four cards
-        this.allowStackingDrawCards = menu.getYesNoInput("Enable stacking of Draw Two/Four cards? (y/n)");
+        this.allowStackingDrawCards = menu.getYesNoInput("Enable stacking of Draw +2/+4 cards? (y/n)");
         System.out.println("Stacking Draw Cards: " + (allowStackingDrawCards ? "Enabled" : "Disabled"));
 
         // Option for the Jump-In rule
-        this.jumpInRuleActive = menu.getYesNoInput("Enable 'Jump-In' rule (playing out of turn with identical card)? (y/n)");
+        this.jumpInRuleActive = menu.getYesNoInput("Enable 🦘'Jump-In' rule (playing out of turn with identical card)? (y/n)");
         System.out.println("'Jump-In' Rule: " + (jumpInRuleActive ? "Enabled" : "Disabled"));
 
         // Option for customizable winning score
@@ -89,5 +89,18 @@ public class RunVariations {
      */
     public int getWinningScore() {
         return winningScore;
+    }
+
+    // --- SETTER ---
+    public void setAllowStackingDrawCards(boolean allowStackingDrawCards) {
+        this.allowStackingDrawCards = allowStackingDrawCards;
+    }
+
+    public void setJumpInRuleActive(boolean jumpInRuleActive) {
+        this.jumpInRuleActive = jumpInRuleActive;
+    }
+
+    public void setWinningScore(int winningScore) {
+        this.winningScore = winningScore;
     }
 }

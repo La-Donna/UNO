@@ -70,7 +70,7 @@ public class Menu {
     public int getCardChoice(List<Card> hand) {
         System.out.println("\nYour Hand:");
         if (hand.isEmpty()) {
-            System.out.println("Your hand is empty! (This shouldn't happen unless you've won the round)");
+            System.out.println("Your hand is empty! (This shouldn't happen unless you've won the round ‼️)");
             return -1; // Indicate an issue or that player has no cards
         }
         for (int i = 0; i < hand.size(); i++) {
@@ -100,10 +100,10 @@ public class Menu {
     public Card.Color promptForColorChoice() {
         Card.Color chosenColor = null;
         System.out.println("Choose a color:");
-        System.out.println("1. RED");
-        System.out.println("2. YELLOW");
-        System.out.println("3. GREEN");
-        System.out.println("4. BLUE");
+        System.out.println("1. RED 🔴");
+        System.out.println("2. YELLOW 🟡");
+        System.out.println("3. GREEN 🟢");
+        System.out.println("4. BLUE 🔵");
 
         while (chosenColor == null) {
             System.out.print("Enter the number for your chosen color: ");
@@ -138,7 +138,7 @@ public class Menu {
             } else if (input.equals("n")) {
                 return false;
             } else {
-                System.out.println("Invalid input. Please enter 'y' or 'n'.");
+                System.out.println("Invalid input. Please enter 'y' for Yes or 'n' for No.");
             }
         }
     }
@@ -153,8 +153,53 @@ public class Menu {
      * This provides a public way to get string input without exposing the internal Scanner.
      * @return The line of text entered by the user.
      */
-    public String readLine() { // <--- ADD THIS NEW PUBLIC METHOD
+    public String readLine() {
         return scanner.nextLine();
+    }
+
+
+
+    /**
+     * Shows Menu and creates a loop until a valid choice has been
+     * made by human player
+     */
+    public int getPlayerActionChoice(List<Card> hand, String playerName) {
+        // Loop until a valid choice is made (card to play, draw, or special action)
+        while (true) {
+            System.out.println("\n--- " + playerName + "'s Options ---");
+            System.out.println("Your Hand:");
+            for (int i = 0; i < hand.size(); i++) {
+                System.out.println((i + 1) + ". " + hand.get(i).toString());
+            }
+            System.out.println("--------------------------");
+            System.out.println("0. Draw a card");
+            System.out.println("S. Say 'UNO!' (if you have one card left)"); // Example: 'S' for Say
+            System.out.println("H. Help (show rules/commands)"); // Example: 'H' for Help
+            // ... potentially other options like "view discard pile" or "view scores"
+            System.out.print("Enter your choice (number, S, H): ");
+
+            String input = scanner.nextLine().trim().toUpperCase(); // Read as String, convert to uppercase
+
+            // Try to parse as a number (card choice or draw)
+            try {
+                int choice = Integer.parseInt(input);
+                if (choice >= 0 && choice <= hand.size()) {
+                    return choice; // Valid card choice or draw
+                } else {
+                    System.out.println("Invalid card number. Please try again.");
+                }
+            } catch (NumberFormatException e) {
+                // Not a number, check for special commands
+                switch (input) {
+                    case "S":
+                        return -2; // Special code for "Say UNO!"
+                    case "H":
+                        return -3; // Special code for "Help"
+                    default:
+                        System.out.println("Invalid input. Please enter a card number, 'S' for UNO, or 'H' for Help.");
+                }
+            }
+        }
     }
 
 }
